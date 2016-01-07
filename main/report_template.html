@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test Report</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link href="{{ static_forder }}/css/bootstrap.min.css" rel='stylesheet' type='text/css' />
+	<link href="{{ static_forder }}/codemirror/monokai.css" rel="stylesheet">
+	<link href="{{ static_forder }}/codemirror/codemirror.css" rel="stylesheet">
+	<script src="{{ static_forder }}/js/jquery.min.js" type="text/javascript"></script>
+	<script src="{{ static_forder }}/js/bootstrap.min.js" type="text/javascript"></script>
+	<script src="{{ static_forder }}/codemirror/codemirror.js"></script>
+	<script src="{{ static_forder }}/codemirror/placeholder.js"></script>
+	<script src="{{ static_forder }}/codemirror/autorefresh.js"></script>
+	<script src="{{ static_forder }}/codemirror/sublime.js"></script>
+	<script src="{{ static_forder }}/codemirror/python.js"></script>
+	
+	<style>
+
+	body a{
+		transition: 0.5s all ease;
+		-webkit-transition: 0.5s all ease;
+		-moz-transition: 0.5s all ease;
+		-o-transition: 0.5s all ease;
+		-ms-transition: 0.5s all ease;
+	}
+
+	body a:hover{
+		text-decoration:none;
+	}
+
+	.navigation {
+		float: left;
+		color: #76EE00;
+	}
+
+	.navigation span {
+		margin-left:10px;
+	}
+
+	.header {
+		padding: 2em 0;
+		background: black;
+	}
+
+	.banner {
+		padding-top: 3em;
+		background: black;
+		height:1000px;
+		border-top: 1px solid rgba(255, 255, 255, 0.17);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.29);
+	}
+	.banner-right{
+		margin-top:1.4em;
+		margin-left:5em;
+		width: 65%;
+		float: left;
+	}
+	.banner-right h1 {
+		font-weight: 700;
+		font-size: 1.95em;
+		color: #fff;
+		margin: 0;
+	}
+	.pre-next {
+		margin-top:20px
+	}
+	.needcenter {
+		text-align:center;
+	}
+	</style>
+</head>
+<body>
+	<!-- MODAL BEGIN -->
+	<div id="reportmodal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ReportModal">
+		<div class="modal-dialog" style="width:100%">
+			<div class="modal-content">
+				<div class="modal-header" id="report_header"></div>
+				<div class="modal-body" id="report_body">
+					<textarea id="report_area" name="report_area" placeholder=".."></textarea>
+                    <script>
+                        var logviewer = CodeMirror.fromTextArea(document.getElementById("report_area"), {
+                            lineNumbers: true,
+                            mode: "python",
+                            theme: "monokai"
+                        });
+                        logviewer.setSize('100%',500);
+                    </script>
+				</div>
+				<div class="modal-footer" style="text-align:center"><button class="btn btn-info" data-dismiss="modal">Close</button></div>
+			</div>
+		</div>
+	</div>
+	<div id="screenshotmodal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="screenshotmodal">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header" id="screenshot_header"></div>
+				<div class="modal-body needcenter" id="screenshot_body">
+				</div>
+				<div class="modal-footer" style="text-align:center"><button class="btn btn-info" data-dismiss="modal">Close</button></div>
+			</div>
+		</div>
+	</div>
+	<!-- MODAL END -->
+	<script>
+		var datas = new Array();
+	</script>
+	<div class="header" id="home">
+		<div class="container">
+			<div class="navigation">
+				<span>用例数量:{{ casecount }} </span>
+				<span>设备数量:{{ device_count }}</span>
+				<span>任务总数:{{ totalcount }}</span>
+				<span>通过数量:{{ success }}</span>
+				<span style="color:red">失败数量:{{ failed }}</span>
+				<!-- <span>当前Build:<label id="buildid" style="color:red"></label></span> -->
+			</div>
+				<div class="clearfix"></div>
+			</div>
+			</div>
+		</div>	
+
+	 <div class="banner">
+	 	<div class="col-md-12">
+	 		<div class="banner-main">
+	 			<div class="col-md-3">
+	 				<img src="{{ static_forder }}/images/ph.png" alt="" />
+	 			</div>
+	 			<div class="col-md-9 banner-right">
+	 				<h1>Test Report
+						{% if not result.failed %}
+						<label class="label label-success" style="margin-left:20px">
+						  All Passed !
+						</label>
+						{% else %}
+						<label class="label label-danger" style="margin-left:20px">
+						  {{ failed }} failed !
+						</label>
+						{% endif %}
+					</h1>
+					
+					{% if result.failed %}
+					<div style="margin-top:20px" id="failed_div" class="panel panel-warning">
+						<div class="panel-heading">失败用例</div>
+						<div>
+							<table class="table table-striped">
+								<tr>
+									<th>device_port_case</th>
+									<th>desc</th>
+									<th>runtime</th>
+									<th>errorMsg</th>
+									<th class="needcenter">viewLog</th>
+									<th class="needcenter">viewscreenshots</th>
+								</tr>
+								{% for case in result.failed %}
+									<tr>
+										<td>{{ case.casename }}</td>
+										<td>{{ case.desc }}</td>
+										<td>{{ case.result.runtime }}</td>
+										<td>{{ case.result.errorMsg }}</td>
+										<td class="needcenter">
+											<a href="#" onclick="viewAppiumlog('{{ case.casename }}')"  data-toggle="modal" data-target="#reportmodal">Appium</a>
+											<a href="#" onclick="viewCaselog('{{ case.casename }}')"  data-toggle="modal" data-target="#reportmodal">Case</a>
+										</td>
+										<td class="needcenter">
+											{% if case.screenshotimgs %}
+												<a href="#" onclick="viewScreenshots('{{ case.casename }}')" data-toggle="modal" data-target="#screenshotmodal">查看</a>
+											{% else %}
+												没有截图
+											{% endif %}
+										</td>
+										<script>
+											datas["{{ case.casename }}_appiumlog"] = {{ case.appiumlogcontent }}
+											datas["{{ case.casename }}_caselog"] = {{ case.caselogcontent }}
+											datas["{{ case.casename }}_screenshots"] = {{ case.screenshotimgs}}
+										</script>
+									</tr>
+								{% endfor %}
+							</table>
+						</div>
+					</div>
+					{% endif %}
+					{% if result.success %}
+					<div style="margin-top:20px" id="success_div" class="panel panel-success">
+						<div class="panel-heading">成功用例</div>
+						<div>
+							<table class="table table-striped">
+								<tr>
+									<th>device_port_case</th>
+									<th>desc</th>
+									<th>runtime</th>
+									<th class="needcenter">viewLog</th>
+									<th class="needcenter">viewscreenshots</th>
+								</tr>
+								{% for case in result.success %}
+									<tr>
+										<td>{{ case.casename }}</td>
+										<td>{{ case.desc }}</td>
+										<td>{{ case.result.runtime }}</td>
+										<td class="needcenter">
+											<a href="#" onclick="viewAppiumlog('{{ case.casename }}')" data-toggle="modal" data-target="#reportmodal">Appium</a>
+											<a href="#" onclick="viewCaselog('{{ case.casename }}')" data-toggle="modal" data-target="#reportmodal">Case</a>
+										</td>
+										<td class="needcenter">
+											{% if case.screenshotimgs %}
+												<a href="#" onclick="viewScreenshots('{{ case.casename }}')" data-toggle="modal" data-target="#screenshotmodal">查看</a>
+											{% else %}
+												没有截图
+											{% endif %}
+										</td>
+										<script>
+											datas["{{ case.casename }}_appiumlog"] = {{ case.appiumlogcontent }}
+											datas["{{ case.casename }}_caselog"] = {{ case.caselogcontent }}
+											datas["{{ case.casename }}_screenshots"] = {{ case.screenshotimgs}}
+										</script>
+									</tr>
+								{% endfor %}
+							</table>
+						</div>
+					</div>
+					{% endif %}
+	 			</div>
+	 		</div>
+	 	</div>
+	 </div>
+</body>
+
+<script language="javascript">
+	function viewAppiumlog(casename) {
+		$("#report_header").html('<span style="font-weight:bold">'+casename+'.appium_log</span>')
+		var logcontent = ""
+		datas[casename+"_appiumlog"].forEach(function(e) {
+			logcontent += e
+		})
+		
+		logviewer.getDoc().setValue(logcontent);
+		
+        setTimeout(function(){
+            logviewer.refresh();
+        },200);
+
+	}
+
+	function viewCaselog(casename) {
+		$("#report_header").html('<span style="font-weight:bold">'+casename+'.case_log</span>');
+		var logcontent = ""
+		datas[casename+"_caselog"].forEach(function(e) {
+			logcontent += e
+		})
+		
+		logviewer.getDoc().setValue(logcontent)
+        setTimeout(function(){
+            logviewer.refresh();
+        },200);
+	}
+	
+	function viewScreenshots(casename) {
+		$("#screenshot_body").html("")
+		$("#screenshot_header").html('<span style="font-weight:bold">'+casename+'.screenshots</span>');
+		var imgs = "";
+		datas[casename+"_screenshots"].forEach(function (e) {
+			imgs += '<span style="margin-right:5px"><img src="'+e[1]+'" longdesc="#" width="240" height="427" alt="img" data-toggle="tooltip" data-placement="left" title="'+e[0]+'"/></span>'
+		})
+		$("#screenshot_body").append(imgs)
+	}
+</script>
+</html>
