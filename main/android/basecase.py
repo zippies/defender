@@ -90,7 +90,6 @@ class AndroidDevice(webdriver.Remote):
 			ele = eval("self.find_element_by_%s" %by)(value)
 			return ele
 		except Exception as e:
-			print(111,e)
 			if not nocheck:
 				raise CaseError("Element not found using '%s':%s" %(by,value))
 			else:
