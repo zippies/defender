@@ -1,6 +1,7 @@
 # defender
 
 简单讲一下用法吧：
+
 一：环境准备：
 1、搭建appium的环境，确保appium在dos下可以通过命令启动：appium -a localhost -p 14230
 2、搭建python3.x 环境，对，就是python2.x不支持！ 建议使用python3.3.5，安装pip
