@@ -36,7 +36,7 @@ devices = [
 ]
 
 #所有设备共享的与appium的连接参数
-#需要的参数可在appium官网查看用途：http://appium.io/slate/en/master/?ruby#appium-server-capabilities
+#需要的参数可在appium官网查看用途：http://appium.io/slate/en/master/?python#appium-server-capabilities
 shared_capabilities = {
 	"app" : "C:\\Users\\Administrator\\Downloads\\wenba_xbj_v4.6.1_qa_server.apk",
 	"appPackage" : "com.wenba.bangbang",
