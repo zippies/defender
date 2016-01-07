@@ -89,7 +89,7 @@ class AndroidRunner(object):
 		appium_thread_list = []
 		for case in cases:
 			appiumlog = os.path.join(self.logdir,case.device_name + "_" + case.appium_port + "_appium.log")
-			cmd = "D:/Appium/node_modules/.bin/appium\
+			cmd = "appium\
 					 -a 127.0.0.1 \
 					 -p %s \
 					 -g %s \
