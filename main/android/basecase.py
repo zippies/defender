@@ -36,6 +36,8 @@ class AndroidDevice(webdriver.Remote):
 		super(AndroidDevice,self).__init__(command_executor, desired_capabilities,browser_profile,proxy,keep_alive) #连接Appium服务
 		self._session_url = command_executor
 		self.screen_shots = 0
+		self.device_width = self.get_window_size()['width']
+		self.device_height = self.get_window_size()['height']
 		if self.command_executor is not None:
 			self._addCommands()
 
@@ -172,14 +174,50 @@ class AndroidDevice(webdriver.Remote):
 		self.logger.log("[action]swipe(begin=%s,end=%s,duration=%s)" %(begin,end,duration))
 		start_x, start_y = begin
 		end_x, end_y = end
+		self.logger.log("%s %s %s %s" %(start_x,start_y,end_x,end_y))
 		action = TouchAction(self)
+		self.logger.log("action:%s" %action)
 		action \
 			.press(x=start_x, y=start_y) \
 			.wait(ms=duration) \
 			.move_to(x=end_x, y=end_y) \
 			.release()
+		self.logger.log("reach here")
 		action.perform()
+		self.logger.log("reach here2")
 		return self
+
+	def swipe_up(self,duration=None):
+		'''
+			swipe up full screen height
+		'''
+		start = (self.device_width/2,self.device_height-10)
+		end = (self.device_width/2,10)
+		self.swipe(start,end,duration)
+
+	def swipe_down(self,duration=None):
+		'''
+			swipe down full screen height
+		'''
+		start = (self.device_width/2,10)
+		end = (self.device_width/2,self.device_height-10)
+		self.swipe(start,end,duration)
+
+	def swipe_left(self,duration=None):
+		'''
+			swipe left full screen width
+		'''
+		start = (self.device_width-10,self.device_height/2)
+		end = (10,self.device_height/2)
+		self.swipe(start,end,duration)
+
+	def swipe_right(self,duration=None):
+		'''
+			swipe right full screen width
+		'''
+		start = (10,self.device_height/2)
+		end = (self.device_width-10,self.device_height/2)
+		self.swipe(start,end,duration)
 
 	def flick(self, begin, end):
 		"""Flick from one point to another point.

@@ -1,5 +1,5 @@
 #coding:utf-8
-import sys,os,time,requests
+import sys,os,time,requests,platform
 from configs.androidConfig import casepath,\
 									logpath,\
 									snapshotpath,\
@@ -82,7 +82,7 @@ class AndroidRunner(object):
 		'''
 		pass
 
-	def startAppium(self,cases,timeout=20):
+	def startAppium(self,cases,timeout=30):
 		'''
 			每个连接的设备(手机)对应启动一个appium服务
 		'''
@@ -124,35 +124,40 @@ class AndroidRunner(object):
 		'''
 			关闭所有appium服务
 		'''
-		os.system("taskkill /F /IM node.exe")
+		if platform.system() == 'Windows':
+			os.system("taskkill /F /IM node.exe")
+		else:
+			os.system("pkill -f appium")
 				
 	def runMultiTest(self):
 		'''
 			运行所有测试用例
 		'''
+		try:
+			for cases in self.testcases.values():
+				self.startAppium(cases)
+				time.sleep(20)
+				testjobs = []
+				for case in cases:
+					caselog = os.path.join(self.logdir,case.casename+"_case")
+					logger = Logger(caselog,case_logmode)
+					setattr(case,'logger',logger)
+					setattr(case, 'result', {"errorMsg":None})
+					setattr(case, 'appiumlogfile', os.path.join(self.logdir,case.device_name+"_"+case.appium_port+"_appium.log"))
+					setattr(case,'caselogfile',caselog+"_info.log")
+					c = case()
+					
+					t = Thread(target=self.runTest,args=(c,))
+					testjobs.append(t)
 
-		for cases in self.testcases.values():
-			self.startAppium(cases)
-			time.sleep(20)
-			testjobs = []
-			for case in cases:
-				caselog = os.path.join(self.logdir,case.casename+"_case")
-				logger = Logger(caselog,case_logmode)
-				setattr(case,'logger',logger)
-				setattr(case, 'result', {"errorMsg":None})
-				setattr(case, 'appiumlogfile', os.path.join(self.logdir,case.device_name+"_"+case.appium_port+"_appium.log"))
-				setattr(case,'caselogfile',caselog+"_info.log")
-				c = case()
-				
-				t = Thread(target=self.runTest,args=(c,))
-				testjobs.append(t)
+				for job in testjobs:
+					job.start()
 
-			for job in testjobs:
-				job.start()
-
-			for job in testjobs:
-				job.join()
-
+				for job in testjobs:
+					job.join()
+		except Exception as e:
+			print(e)
+		finally:
 			self.stopAppium()
 
 	def runTest(self,case):
