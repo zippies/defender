@@ -1,4 +1,4 @@
-from android.basecase import AndroidDevice
+from main.android.basecase import AndroidDevice
 
 class TestCase(AndroidDevice):
 	# 需要修改  desc：描述这个测试脚本测试的内容
@@ -7,55 +7,61 @@ class TestCase(AndroidDevice):
 	def __init__(self,ce,dc):
 		self.dc = dc
 		self.appium_port = ce['port']
+		self.bootstrap_port = ce['bootstrap_port']
 		self.device_name = dc['deviceName']
 		self.appium_url = ce['url']
-		self.casename = '%s_%s_%s' %(dc['deviceName'],ce['port'],str(self.__class__).split('.')[0].split('\'')[1])
+		self.filename = str(self.__class__).split('.')[0].split('\'')[1]
+		self.casename = '%s_%s_%s' %(dc['deviceName'],ce['port'],self.filename)
 
-	def __call__(self):
-		super(TestCase,self).__init__(command_executor=self.appium_url,desired_capabilities=self.dc)
+	def __call__(self,conflict_datas):
+		super(TestCase,self).__init__(conflict_datas,command_executor=self.appium_url,desired_capabilities=self.dc)
 		return self
 
 	# 需要修改
 	def run(self):
+		#设置隐式等待为10秒
 		self.implicitly_wait(10)
-
 		#允许使用摄像头
-		self.click('id','android:id/button1',nocheck=True)
+		self.allow_alert()
 		#不注册点击登录
-		self.click('id','com.wenba.bangbang:id/register_loginTv')
+		self.super_click('直接登录按钮')
+		#拿到与其他设备不相冲突的账号
+		username,password = self.get_conflict('登录帐号')
 		#输入账号
-		self.input('id','com.wenba.bangbang:id/login_username_et','11266661001')
+		self.super_input('登录用户名输入框',username)
 		#输入密码
-		self.input('id','com.wenba.bangbang:id/login_passwd_et','111111 ')
+		self.super_input('登录密码输入框',password)
 		#点击登录按钮
-		self.click('id','com.wenba.bangbang:id/login_login_tv1')
-
-		self.save_screen()
-
+		self.super_click('登录按钮')
+		#等待2秒
+		self.sleep(2)
+		#截图
+		self.save_screen('login')
 		#点击拍照搜题
-		self.click('id','com.wenba.bangbang:id/skin_home_btn_camera')
+		self.super_click('拍照搜题按钮')
 		#允许调用摄像头
-		self.click('id','android:id/button1',nocheck=True)
+		self.allow_alert()
+		self.save_screen('camera')
 		#点击相册
-		self.click('id','com.wenba.bangbang:id/campage_btn_pic')
-		#找到相册内所有图片
-		eles = self.finds('id','com.android.documentsui:id/icon_thumb')
-		#选择第一张点击
-		eles[1].click()
+		self.super_click('相册')
+		#找到相册内所有图片  选择第一张点击
+		self.save_screen()
+		eles = self.super_finds('所有图片')[1].click()
+		self.save_screen()
 		#点击提交按钮
-		self.click('id','com.wenba.bangbang:id/skin_edit_opt_submit')
+		self.super_click('提交图片')
+		self.save_screen()
 		#点击老师答疑
-		self.click('id','com.wenba.bangbang:id/skin_feed_search_buttom_live_layout')
+		self.super_click('老师答疑')
+		self.save_screen()
 		#同意调用录音
-		self.click('id','android:id/button1',nocheck=True)
-		#等直到出现取消发红包按钮
-		btn = self.waitfor('id','com.wenba.bangbang:id/btn_cancel',timeout=120)
-		btn.click()
-		#评星级
-		ele = self.finds('class_name','android.widget.ImageView')
-		#五星
-		ele[4].click()
-		#点评内容
-		self.input('id','com.wenba.bangbang:id/skin_edt_comment',"good good study day day up")
+		self.allow_alert(nocheck=True)
+		#等直到出现取消发红包按钮 并点击
+		btn = self.super_waitfor('取消分享红包',timeout=120).click()
+		#评星级	五星
+		ele = self.super_finds('所有评价星星')[4].click()
+		#点评内容 输入"good good study day day up"
+		content = self.test_datas.get('评价内容')
+		self.super_input('评价输入框',content)
 		#提交点评
-		self.click('id','com.wenba.bangbang:id/skin_btn_rate_submit')
+		self.super_click('提交评价')

@@ -11,8 +11,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
-
-from errors import CheckError,CaseError,ActionTimeOut
+from datetime import datetime
+from ..errors import CheckError,CaseError,ActionTimeOut
 import os,time
 
 # Returns abs path relative to this file and not cwd
@@ -32,12 +32,13 @@ PATH = lambda p: os.path.abspath(
 # 	return _deco
 
 class AndroidDevice(webdriver.Remote):
-	def __init__(self,command_executor='http://localhost:4723/wd/hub',desired_capabilities=None,browser_profile=None,proxy=None,keep_alive=False):
+	def __init__(self,conflict_datas,command_executor='http://localhost:4723/wd/hub',desired_capabilities=None,browser_profile=None,proxy=None,keep_alive=False):
 		super(AndroidDevice,self).__init__(command_executor, desired_capabilities,browser_profile,proxy,keep_alive) #连接Appium服务
 		self._session_url = command_executor
 		self.screen_shots = 0
 		self.device_width = self.get_window_size()['width']
 		self.device_height = self.get_window_size()['height']
+		self.conflict_datas = conflict_datas
 		if self.command_executor is not None:
 			self._addCommands()
 
@@ -93,11 +94,11 @@ class AndroidDevice(webdriver.Remote):
 			return ele
 		except Exception as e:
 			if not nocheck:
-				raise CaseError("Element not found using '%s':%s" %(by,value))
+				raise CaseError("Element not found using '%s' : %s" %(by,value))
 			else:
 				return None
 		
-	def finds(self,by,value):
+	def finds(self,by,value,nocheck=False):
 		if by not in ['id','accessibility_id','class_name','css_selector','name','link_text','partial_link_text','xpath','ios_uiautomation','android_uiautomator']:
 			raise CaseError("'find' function doesn't support such type:'%s'" %by)
 
@@ -105,42 +106,93 @@ class AndroidDevice(webdriver.Remote):
 			eles = eval("self.find_elements_by_%s" %by)(value)
 			return eles
 		except Exception as e:
-			raise CaseError("%s Elements not found using '%s':%s" %(str(e),by,value))
+			if not nocheck:
+				raise CaseError("Elements not found using '%s' : %s" %(by,value))
+			else:
+				return []
 
-	def click(self,by,value,nocheck=False):
-		self.logger.log("[action]click(by='%s',value='%s',nocheck=%s)" %(by,value,nocheck))
-
+	def click(self,by,value,desc="",nocheck=False):
+		self.logger.log("[action]click(by='%s',value='%s',nocheck=%s) '%s'" %(by,value,nocheck,desc))
 		if not isinstance(value, str):
 			raise CaseError("'click' function required a str type on 'value' parameter")
 
 		ele = self.find(by,value,nocheck)
-
+		
 		if not ele and nocheck:
 			return None
 		else:
 			ele.click()
 
+	def super_click(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			self.click(by,value,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_find(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.find(by,value,nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_finds(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.finds(by,value,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_input(self,case_element_name,text,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			self.input(by,value,text,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_gettext(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.gettext(by,value,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_waitfor(self,case_element_name,timeout=10):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.waitfor(by,value,desc=case_element_name,timeout=timeout)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
 	def save_screen(self,filename=None):
+		time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 		screen = None
 		if filename:
-			screen = os.path.join(self.screenshotdir,filename + ".png")
+			screen = os.path.join(self.screenshotdir,"%s_%s.png" %(time_str,filename))
 		else:
 			self.screen_shots += 1
-			screen = os.path.join(self.screenshotdir,str(self.screen_shots) + ".png")
+			screen = os.path.join(self.screenshotdir,"%s_%s.png" %(time_str,self.screen_shots))
 
 		self.logger.log("[action]save_screen(filename='%s')" %screen)
 		self.get_screenshot_as_file(screen)
 
-	def input(self,by,value,text,nocheck=False):
-		self.logger.log("[action]input(by='%s',value='%s',text='%s',nocheck=%s)" %(by,value,text,nocheck))
+	def input(self,by,value,text,desc="",nocheck=False):
+		self.logger.log("[action]input(by='%s',value='%s',text='%s',nocheck=%s) '%s'" %(by,value,text,nocheck,desc))
 		ele = self.find(by,value,nocheck)
 		if not ele and nocheck:
 			return None
 		else:
 			ele.send_keys(text)
 
-	def gettext(self,by,value,nocheck=False):
-		self.logger.log("[action]gettext(by='%s',value='%s',nocheck=%s)" %(by,value,nocheck))
+	def gettext(self,by,value,desc="",nocheck=False):
+		self.logger.log("[action]gettext(by='%s',value='%s',nocheck=%s) '%s'" %(by,value,nocheck,desc))
 		ele = self.find(by,value,nocheck)
 
 		if not ele and nocheck:
@@ -148,15 +200,15 @@ class AndroidDevice(webdriver.Remote):
 		else:
 			return ele.text
 
-	def waitfor(self,by,value,timeout=10):
-		self.logger.log("[action]waitfor(by='%s',value='%s',timeout=%s)" %(by,value,timeout))
+	def waitfor(self,by,value,desc="",timeout=10):
+		self.logger.log("[action]waitfor(by='%s',value='%s',timeout=%s) '%s'" %(by,value,timeout,desc))
 		try:
 			WebDriverWait(self,timeout,1).until(
 				lambda x: getattr(x,'find_element_by_%s' %by)(value).is_displayed()
 			)
 			return self.find(by,value)
 		except:
-			raise ActionTimeOut("element not shown during %s seconds" %timeout)
+			raise ActionTimeOut("'%s:%s' element not shown during %s seconds '%s'" %(by,value,timeout,desc))
 
 	def swipe(self,begin,end,duration=None):
 		"""Swipe from one point to another point, for an optional duration.
@@ -253,6 +305,22 @@ class AndroidDevice(webdriver.Remote):
 		else:
 			raise CheckError("'%s' does not equals '%s'" %(a,b))
 
+	def allow_alert(self,nocheck=True):
+		self.click('id','android:id/button1',nocheck=nocheck)
+
+	def reject_alert(self,nocheck=True):
+		self.click('id','android:id/button',nocheck=nocheck)
+
+	def get_conflict(self,name):
+		if name in self.conflict_datas.keys():
+			try:
+				data = self.conflict_datas[name].pop()
+				return data
+			except Exception as e:
+				raise CaseError("%s:got no more value to be popped(%s)" %(name,str(e)))
+		else:
+			raise CaseError("undefined:%s check your 'androidConfig.py' to see if it is configured correctly" %name)
+
 #=============================================自定义方法  END ==============================================================
 	def find_element_by_ios_uiautomation(self, uia_string):
 		"""Finds an element by uiautomation in iOS.
@@ -316,7 +384,7 @@ class AndroidDevice(webdriver.Remote):
 		Overrides method in Selenium WebDriver in order to always give them
 		Appium WebElement
 		"""
-		self.logger.log("[action]create_web_element(element_id='%s')" %element_id)
+		#self.logger.log("[action]create_web_element(element_id='%s')" %element_id)
 		return MobileWebElement(self, element_id)
 
 	def scroll(self, origin_el, destination_el):
