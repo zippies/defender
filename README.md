@@ -25,7 +25,7 @@
 
         python androidRunner.py   运行结束后dos窗口最后会输出测试结果（包含测试报告的路径，打开后可以查看详细结果）
 
-        python androidRunner.py -c casename  执行运行某一条case使用带参数的方式运行的话，在测试结束后会自动启动默认浏览器打开测试报告（建议体验下）
+        python androidRunner.py -c casename  指定运行某一条case
 
 		python androidRunner.py -o [任意字符] -o后接任意参数:在测试结束后会自动启动默认浏览器打开测试报告（建议体验下,-c -o 可同时使用）
 
