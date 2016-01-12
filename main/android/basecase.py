@@ -53,34 +53,6 @@ class AndroidDevice(webdriver.Remote):
 
 	def __repr__(self):
 		return "<TestCase>:"+self.casename
-
-	@property
-	def contexts(self):
-		"""
-		Returns the contexts within the current session.
-		:Usage:
-			driver.contexts
-		"""
-		return self.execute(Command.CONTEXTS)['value']
-
-	@property
-	def current_context(self):
-		"""
-		Returns the current context of the current session.
-		:Usage:
-			driver.current_context
-		"""
-		return self.execute(Command.GET_CURRENT_CONTEXT)['value']
-
-	@property
-	def context(self):
-		"""
-		Returns the current context of the current session.
-		:Usage:
-			driver.context
-		"""
-		return self.current_context
-
 #=============================================自定义方法  BEGIN ==============================================================
 	def sleep(self,seconds):
 		self.logger.log("[action]sleep(seconds='%s')" %seconds)
@@ -321,6 +293,33 @@ class AndroidDevice(webdriver.Remote):
 			raise CaseError("undefined:%s check your 'androidConfig.py' to see if it is configured correctly" %name)
 
 #=============================================自定义方法  END ==============================================================
+	@property
+	def contexts(self):
+		"""
+		Returns the contexts within the current session.
+		:Usage:
+			driver.contexts
+		"""
+		return self.execute(Command.CONTEXTS)['value']
+
+	@property
+	def current_context(self):
+		"""
+		Returns the current context of the current session.
+		:Usage:
+			driver.current_context
+		"""
+		return self.execute(Command.GET_CURRENT_CONTEXT)['value']
+
+	@property
+	def context(self):
+		"""
+		Returns the current context of the current session.
+		:Usage:
+			driver.context
+		"""
+		return self.current_context
+
 	def find_element_by_ios_uiautomation(self, uia_string):
 		"""Finds an element by uiautomation in iOS.
 		:Args:

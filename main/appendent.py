@@ -48,10 +48,13 @@ class TestData(object):
 	def get(self,name,special_index=0):
 		if hasattr(self,name):
 			values = getattr(self,name)
-			if special_index > len(values):
-				return None
-			else:
-				return values[special_index-1] if special_index else random.sample(values,1)[0]
+			if isinstance(values, str):
+				return values
+			elif isinstance(values, list):
+				if special_index > len(values):
+					return None
+				else:
+					return values[special_index-1] if special_index else random.sample(values,1)[0]
 		else:
 			return None
 

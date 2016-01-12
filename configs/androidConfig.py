@@ -2,7 +2,7 @@
 #用例日志模式:file(日志写文件,不在终端打印)|print(日志在终端打印,不写文件)|all(日志既在终端打印,同时写文件)
 case_logmode = "file"
 
-#appium的日志级别：debug|info|error
+#appium的日志级别：debug|info|warning|error
 appium_log_level = "info"
 
 #测试用例存放目录
@@ -14,9 +14,6 @@ logpath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\logs"
 #截图文件存放目录
 snapshotpath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\snapshots"
 
-#测试数据存放目录
-casedatapath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\casedata"
-
 #电脑连接上的设备(有多台则写多台)
 devices = [
 	# {
@@ -25,21 +22,31 @@ devices = [
 	# 	"platformVersion":"4.4"
 	# }#,
 	{
-		"deviceName":"9L5T99MNPZDEW4I7", #lenovo
+		"deviceName":"10.88.1.223:5555",#"9L5T99MNPZDEW4I7", #lenovo
 		"platformName":"Android",
 		"platformVersion":"4.4"
-	}
+	},
 	# {
 	# 	"deviceName":"M3LDU15424001636",  #honor 6
 	# 	"platformName":"Android",
 	# 	"platformVersion":"4.4"
 	# }
+	{
+		"deviceName":"10.88.1.93:5555",#"9L5T99MNPZDEW4I7", #lenovo
+		"platformName":"Android",
+		"platformVersion":"4.4"
+	},
+	{
+		"deviceName":"10.88.0.86:5555",#"9L5T99MNPZDEW4I7", #lenovo
+		"platformName":"Android",
+		"platformVersion":"4.4"
+	}
 ]
 
 #所有设备共享的与appium的连接参数
 #需要的参数可在appium官网查看用途：http://appium.io/slate/en/master/?python#appium-server-capabilities
 shared_capabilities = {
-	#"app" : "C:\\Users\\Administrator\\Downloads\\wenba_xbj_v4.6.1_qa_server.apk",
+	#"app" : "C:\\Users\\Administrator\\Downloads\\wenba_xbj_v4.6.1_qa_server.apk",	#也可在命令行指定apk
 	"appPackage" : "com.wenba.bangbang",
 	"appActivity" : "com.wenba.bangbang.activity.CoverActivity",
 	"newCommandTimeout" : 120,
@@ -68,32 +75,29 @@ case_elements = \
 提交评价			|id		   	 |com.wenba.bangbang:id/skin_btn_rate_submit
 '''
 
-
-
 #需要在case内用到的测试数据(实现测试数据和case分离)
 #数据格式----以'|'符号分隔的name和value：	name  |   value
 #case内用法：
-#	comments = self.test_datas.get('评价内容')
+#	comments = self.test_datas.get('评价内容')	#随机返回一个'评价内容'列表内的值
 #	comments = self.test_datas.get('评价内容',1)   #指定获取第1条数据("good good study,day day up! ")
+#	data = self.test_datas.get('测试数据')   #获取"abcdef123456"
 test_datas = \
 '''
 评价内容 	|	[ "good good study,day day up! " , "you can you up! no can no bee bee! " ]
+测试数据	|	"abcdef123456"
 '''
 
-
-
-
-#提供在相同case运行在多个终端时，每个终端通过相同的name调用方法self.get_conflict(name)能获取到不同数据的
+#适用场景：在相同case运行在多个终端时，每个终端通过相同的name调用方法self.get_conflict(name)能获取到不同数据
 #该配置解决在多个设备同时跑相同case的场景下可能存在的数据冲突
 #例如：两个手机同时跑登录的case，如果case内使用帐号相同则会存在帐号冲突，导致某一台手机case运行失败
-#数据格式----以'|'符号分隔的name和value：	name  |   value
+#数据格式----以'|'符号分隔的name和value(list类型)：	name  |   value
 #用法：
 #	username,password = self.get_conflict('登录帐号')
 #	other_data = self.get_conflick('其他数据')
 #[注意]：
-#	在case内有使用的name,value内值不能少于使用的设备数！
+#	在case内有使用的name，其value内配置的值个数不能少于使用的设备数！
 conflict_datas = \
 '''
-登录帐号	|	[ ('11266661001','111111 '), ('11266661002','111111 '), ('11266661003','111111 ')]
+登录帐号	|	[ ('11266661001','111111'), ('11266661002','111111'), ('11266661003','111111')]
 其他数据	|	[1,2]
 '''

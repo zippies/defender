@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys,os,time,requests,platform
 from configs.androidConfig import casepath,\
-									casedatapath,\
 									logpath,\
 									snapshotpath,\
 									case_logmode,\
@@ -20,16 +19,19 @@ from pprint import pprint
 
 class AndroidRunner(object):
 	def __init__(self,singlecase=None,apk_file=None):
-		self.apk_file = apk_file
+		self.apk_file = apk_file or shared_capabilities.get('app')
 		self.singlecase = singlecase
-		self._precheck()
+		self.devices = devices
+		self.reachable_devices = None
+		self._connectWirelessDevices()
+		self._checkConfig()
+		sys.exit(-1)
 		self.current_system = platform.system()
 		self.case_elements = CaseElements(case_elements)
 		self.test_datas = TestData(test_datas)
 		self.current_time = time.time()
 		self.logtime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 		self.static_forder = os.path.abspath('static')
-		self.devices = devices
 		self.appiums = self._initAppium()
 		self.logdir = os.path.join(logpath,self.logtime)
 		self.testcases = {}
@@ -44,14 +46,42 @@ class AndroidRunner(object):
 		self._initcase(singlecase)
 		self._initdirs()
 
-	def _precheck(self):
+	def _connectWirelessDevices(self):
 		from subprocess import Popen,PIPE
+		import re
 		cmd = 'adb devices'
 		p = Popen(cmd,stdout=PIPE,shell=True)
 		reachable_devices = [info.decode().split('device')[0].strip('\t ') for info in p.stdout.readlines() if info.decode().strip('\r\n')][1:]
-		config_devices = [device['deviceName'] for device in devices]
+		pattern = re.compile("([0-9]{1,3}.){3}[0-9]{1,3}:[0-9]{4}")
+		for device in self.devices:
+			match = pattern.match(device['deviceName'])
+			if match and device['deviceName'] not in reachable_devices:
+				result = os.system("adb connect %s" %device['deviceName'])
+				if result != 0:
+					print(device['deviceName'],result)
+					raise ConfigError("device:%s is not reachable currently111" %device['deviceName'])
+
+		time.sleep(1)	#等待授权
+		pp = Popen(cmd,stdout=PIPE,shell=True)
+		self.reachable_devices = [info.decode().split('device')[0].strip('\t ') for info in pp.stdout.readlines() if info.decode().strip('\r\n')][1:]
+
+	def _checkConfig(self):
+		if case_logmode not in ['print','file','all']:
+			raise ConfigError("no such case_logmode '%s' ,it should be one of [ file| print| all]" %case_logmode)
+
+		if appium_log_level not in ['debug','info','warning','error']:
+			raise ConfigError("no such appium_log_level '%s' ,it should be one of [ debug| info| warning| error]" %appium_log_level)
+
+		if len([case for case in os.listdir(casepath) if case.endswith('.py')]) == 0:
+			raise ConfigError("no case file found in '%s'" %casepath)
+
+		if self.apk_file:
+			if not os.path.exists(self.apk_file):
+				raise ConfigError("file not found:%s" %self.apk_file)
+
+		config_devices = [device['deviceName'] for device in self.devices]
 		for device in config_devices:
-			if device not in reachable_devices:
+			if device not in self.reachable_devices:
 				raise ConfigError("device:%s is not reachable currently" %device)
 
 	def _parseConflictData(self,datastr):
@@ -294,6 +324,9 @@ if __name__ == '__main__':
 	except Exception as e:
 		print(e)
 		sys.exit(-1)
-	#如果命令行参数大于1个,用默认浏览器打开测试报告 python androidRunner.py type_anything_here
+	#如果指定了-o参数,则运行结束启用默认浏览器打开测试报告 python androidRunner.py -o type_anything_here
 	if args.o:
-		os.system('start %s' %runner.result['report'])
+		if platform.system() == 'Windows':
+			os.system('start %s' %runner.result['report'])
+		else:
+			os.system('open %s' %runner.result['report'])
