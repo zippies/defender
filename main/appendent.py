@@ -1,6 +1,5 @@
+# -*- coding: utf-8 -*-
 import os,random
-from pprint import pprint
-from multiprocessing import Manager
 
 class CaseElements(object):
 	def __init__(self,element_str):
@@ -57,6 +56,7 @@ class TestData(object):
 			return None
 
 if __name__ == '__main__':
+	from pprint import pprint
 	#c = CaseElements('C:\\Users\\Administrator\\Desktop\\selftest\\defender\\elements.txt')
 	case_elements = \
 	'''

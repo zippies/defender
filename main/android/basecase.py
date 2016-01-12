@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from appium import webdriver
 from appium.webdriver.mobilecommand import MobileCommand as Command
 from appium.webdriver.errorhandler import MobileErrorHandler
@@ -208,7 +209,7 @@ class AndroidDevice(webdriver.Remote):
 			)
 			return self.find(by,value)
 		except:
-			raise ActionTimeOut("'%s:%s' element not shown during %s seconds '%s'" %(by,value,timeout,desc))
+			raise ActionTimeOut("'%s:%s' element not shown after %s seconds '%s'" %(by,value,timeout,desc))
 
 	def swipe(self,begin,end,duration=None):
 		"""Swipe from one point to another point, for an optional duration.
@@ -234,9 +235,7 @@ class AndroidDevice(webdriver.Remote):
 			.wait(ms=duration) \
 			.move_to(x=end_x, y=end_y) \
 			.release()
-		self.logger.log("reach here")
 		action.perform()
-		self.logger.log("reach here2")
 		return self
 
 	def swipe_up(self,duration=None):

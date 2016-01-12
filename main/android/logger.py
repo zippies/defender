@@ -1,4 +1,4 @@
-import time
+# -*- coding: utf-8 -*-
 import logging
 
 class Logger(object):

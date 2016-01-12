@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from main.android.basecase import AndroidDevice
 
 class TestCase(AndroidDevice):

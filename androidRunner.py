@@ -1,4 +1,4 @@
-#coding:utf-8
+# -*- coding: utf-8 -*-
 import sys,os,time,requests,platform
 from configs.androidConfig import casepath,\
 									casedatapath,\
@@ -12,14 +12,17 @@ from configs.androidConfig import casepath,\
 									test_datas,\
 									conflict_datas
 sys.path.append(casepath)
-from main import Logger,TestData,CaseElements
+from main import Logger,TestData,CaseElements,ConfigError
+from multiprocessing import Process
 from threading import Thread
 from datetime import datetime
 from pprint import pprint
 
 class AndroidRunner(object):
-	def __init__(self,singlecase=None):
+	def __init__(self,singlecase=None,apk_file=None):
+		self.apk_file = apk_file
 		self.singlecase = singlecase
+		self._precheck()
 		self.current_system = platform.system()
 		self.case_elements = CaseElements(case_elements)
 		self.test_datas = TestData(test_datas)
@@ -40,6 +43,16 @@ class AndroidRunner(object):
 		}
 		self._initcase(singlecase)
 		self._initdirs()
+
+	def _precheck(self):
+		from subprocess import Popen,PIPE
+		cmd = 'adb devices'
+		p = Popen(cmd,stdout=PIPE,shell=True)
+		reachable_devices = [info.decode().split('device')[0].strip('\t ') for info in p.stdout.readlines() if info.decode().strip('\r\n')][1:]
+		config_devices = [device['deviceName'] for device in devices]
+		for device in config_devices:
+			if device not in reachable_devices:
+				raise ConfigError("device:%s is not reachable currently" %device)
 
 	def _parseConflictData(self,datastr):
 		datas = {}
@@ -64,6 +77,8 @@ class AndroidRunner(object):
 		for index,device in enumerate(self.devices):
 			for key,value in shared_capabilities.items():
 				device[key] = value
+			if self.apk_file:
+				device["app"] = self.apk_file
 			self.devices[index] = device
 			port = str(13230 + index)
 			bootstrap_port = str(14230 + index)
@@ -115,7 +130,7 @@ class AndroidRunner(object):
 		'''
 			每个连接的设备(手机)对应启动一个appium服务
 		'''
-		appium_thread_list = []
+		appium_process_list = []
 		for case in cases:
 			appiumlog = os.path.join(self.logdir,case.device_name + "_" + case.appium_port + case.filename + "_appium.log")
 			cmd = "appium\
@@ -127,14 +142,14 @@ class AndroidRunner(object):
 					 --log-level %s \
 					 -U %s \
 					 --log-no-colors" %(case.appium_port,case.bootstrap_port,appiumlog,appium_log_level,case.device_name)
-			t = Thread(target=os.system,args=(cmd,))
-			t.daemon = True
-			appium_thread_list.append(t)
+			p = Process(target=os.system,args=(cmd,))
+			p.daemon = True
+			appium_process_list.append(p)
 			if self.is_Appium_Alive(case.appium_port):
 				self.stopAppium()
 
-		for t in appium_thread_list:
-			t.start()
+		for p in appium_process_list:
+			p.start()
 
 		for case in cases:
 			starts = time.time()
@@ -156,7 +171,7 @@ class AndroidRunner(object):
 		if self.current_system == 'Windows':
 			os.system("taskkill /F /IM node.exe")
 		else:
-			os.system("pkill -f appium")
+			os.system("killall node")
 
 	def runMultiTest(self):
 		'''
@@ -237,7 +252,7 @@ class AndroidRunner(object):
 
 			setattr(case,'screenshotimgs',[[file,os.path.join(case.screenshotdir,file)] for file in os.listdir(case.screenshotdir)])
 
-	def generateReport(self):
+	def generateReport(self,report_path=None):
 		from jinja2 import Template
 		context = self.getReportContext()
 
@@ -252,7 +267,10 @@ class AndroidRunner(object):
 								failed=len(self.result['failed']),
 								static_forder=self.static_forder
 								)
-		report = os.path.join(self.logdir,'report.html')
+		if report_path and not os.path.exists(report_path):
+			os.makedirs(report_path)
+
+		report = os.path.join(report_path or self.logdir,'report.html')
 		with open(report,'w',encoding='utf-8') as f:
 			f.write(html)
 
@@ -264,13 +282,18 @@ class AndroidRunner(object):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-c",help="usage: python androidRunner -case [casename]")
-	parser.add_argument("-o",help="auto open report.html when test_job is done")
+	parser.add_argument("-c",help="usage: python androidRunner -c [casename]")
+	parser.add_argument("-o",help="open report.html when test_job is done")
+	parser.add_argument("-report",help="specify report path")
+	parser.add_argument("-app",help="specify used apk")
 	args = parser.parse_args()
-
-	runner = AndroidRunner(args.c)
-	runner.runMultiTest()
-	runner.generateReport()
+	try:
+		runner = AndroidRunner(args.c,args.app)
+		runner.runMultiTest()
+		runner.generateReport(args.report)
+	except Exception as e:
+		print(e)
+		sys.exit(-1)
 	#如果命令行参数大于1个,用默认浏览器打开测试报告 python androidRunner.py type_anything_here
 	if args.o:
 		os.system('start %s' %runner.result['report'])
