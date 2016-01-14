@@ -32,6 +32,8 @@
 		python androidRunner.py -o [任意字符] -o后接任意参数:在测试结束后会自动启动默认浏览器打开测试报告（建议体验下,-c -o 可同时使用）
 
 		python androidRunner.py -app [需要测试的app绝对路径]
+
+		python androidRunner.py -report [存放测试报告的文件夹绝对路径]  
 		
 五：用例写法
 
@@ -41,7 +43,7 @@
 
 		1、self.find_element_by_id('click_me').click()	|	self.find_element_by_class_name('click_me').click()  | ....   同webdriver的方法，需要敲比较多键盘 = =。
 		
-		2、self.find('id',id).click()	或者  self.click('id','click_me')   |	self.find('class_name','click_me').click()	或者	self.click('class_name','click_me')
+		2、self.find('id','click_me').click()	或者  self.click('id','click_me')   |	self.find('class_name','click_me').click()	或者	self.click('class_name','click_me')
 		
 		3、self.super_click('点我')  <---  这种方式需要先将元素信息在androidConfig.py的case_elements配置项内配好，该方式实现了app元素和case的分离，推荐使用！
 
@@ -57,7 +59,7 @@
 		
 六：其他：
 
-    目前支持多case、多设备
+    目前支持多case、多设备、wifi设备连接
 	
 	适用场景：
 
