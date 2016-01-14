@@ -6,6 +6,7 @@ from configs.androidConfig import casepath,\
 									case_logmode,\
 									appium_log_level,\
 									devices,\
+									system_alert_ids,\
 									shared_capabilities,\
 									case_elements,\
 									test_datas,\
@@ -25,7 +26,6 @@ class AndroidRunner(object):
 		self.reachable_devices = None
 		self._connectWirelessDevices()
 		self._checkConfig()
-		sys.exit(-1)
 		self.current_system = platform.system()
 		self.case_elements = CaseElements(case_elements)
 		self.test_datas = TestData(test_datas)
@@ -69,8 +69,8 @@ class AndroidRunner(object):
 		if case_logmode not in ['print','file','all']:
 			raise ConfigError("no such case_logmode '%s' ,it should be one of [ file| print| all]" %case_logmode)
 
-		if appium_log_level not in ['debug','info','warning','error']:
-			raise ConfigError("no such appium_log_level '%s' ,it should be one of [ debug| info| warning| error]" %appium_log_level)
+		if appium_log_level not in ['info', 'info:debug', 'info:info', 'info:warn', 'info:error', 'warn', 'warn:debug', 'warn:info', 'warn:warn', 'warn:error', 'error', 'error:debug', 'error:info', 'error:warn', 'error:error', 'debug', 'debug:debug', 'debug:info', 'debug:warn', 'debug:error']:
+			raise ConfigError("no such appium_log_level '%s' ,it should be one of [ info, info:debug, info:info, info:warn, info:error, warn, warn:debug, warn:info, warn:warn, warn:error, error, error:debug, error:info, error:warn, error:error, debug, debug:debug, debug:info, debug:warn, debug:error]" %appium_log_level)
 
 		if len([case for case in os.listdir(casepath) if case.endswith('.py')]) == 0:
 			raise ConfigError("no case file found in '%s'" %casepath)
@@ -109,9 +109,12 @@ class AndroidRunner(object):
 				device[key] = value
 			if self.apk_file:
 				device["app"] = self.apk_file
+			device['automationName'] = 'Appium' if float(device['platformVersion']) > 4.2 else 'Selendroid'
 			self.devices[index] = device
+			print(device)
 			port = str(13230 + index)
 			bootstrap_port = str(14230 + index)
+			selendroid_port = str(15230 + index)
 			appiums.append({"port":port,"bootstrap_port":bootstrap_port,"url":"http://localhost:%s/wd/hub" %port})
 
 		return appiums
@@ -177,6 +180,7 @@ class AndroidRunner(object):
 			appium_process_list.append(p)
 			if self.is_Appium_Alive(case.appium_port):
 				self.stopAppium()
+			print("[action]Starting Appium on port : %s bootstrap_port: %s for device %s" %(case.appium_port,case.bootstrap_port,case.device_name))
 
 		for p in appium_process_list:
 			p.start()
@@ -190,7 +194,7 @@ class AndroidRunner(object):
 				else:
 					time.sleep(0.5)
 			else:
-				print("[failure]Start Appium failed on port: %s bootstrap_port: %s !" %(case.appium_port,case.bootstrap_port))
+				print("[failure]Start Appium failed on port: %s bootstrap_port: %s for device %s!" %(case.appium_port,case.bootstrap_port,case.device_name))
 				self.stopAppium()
 				sys.exit(-1)
 
@@ -228,7 +232,9 @@ class AndroidRunner(object):
 			self.stopAppium()
 
 	def runTest(self,case,datas):
+		print("[action]Initializing case %s" %case.casename)
 		start = time.time()
+		initsuccess = False
 		caselog = os.path.join(self.logdir,case.casename+"_case")
 		logger = Logger(caselog,case_logmode)
 		setattr(case,'logger',logger)
@@ -237,14 +243,17 @@ class AndroidRunner(object):
 		setattr(case,'caselogfile',caselog+"_info.log")
 		setattr(case,'case_elements',self.case_elements)
 		setattr(case,'test_datas',self.test_datas)
-		case = case(datas)
+		setattr(case,'system_alert_ids',system_alert_ids)
 		try:
-			print("running test:%s %s" %(case.casename,case.desc))
+			case = case(datas)
+			initsuccess = True
+			print("[action]running test:%s %s" %(case.casename,case.desc))
 			case.run()
 		except Exception as e:
 			errorMsg = str(e)
 			case.logger.log("[ERROR]%s" %errorMsg)
-			case.save_screen("error")
+			if initsuccess:
+				case.save_screen("error",immediate=True)
 			case.result['result'] = False
 			case.result['errorMsg'] = errorMsg
 			self.result['failed'].append(case)
@@ -252,8 +261,9 @@ class AndroidRunner(object):
 			end = time.time()
 			case.result['runtime'] = round(end-start,2)
 			print("end test:",case.casename)
-			case.close_app()
-			case.quit()
+			if initsuccess:
+				case.close_app()
+				case.quit()
 
 		if 'result' not in case.result.keys():
 			case.result['result'] = True

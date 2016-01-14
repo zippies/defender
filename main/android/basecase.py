@@ -104,6 +104,13 @@ class AndroidDevice(webdriver.Remote):
 			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
 			raise CaseError(error)
 
+	def super_exists(self,case_element_name):
+		if self.super_find(case_element_name,nocheck=True):
+			return True
+		else:
+			return False
+
+
 	def super_find(self,case_element_name,nocheck=False):
 		by,value = self.case_elements.get(case_element_name)
 		if by and value:
@@ -144,7 +151,7 @@ class AndroidDevice(webdriver.Remote):
 			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
 			raise CaseError(error)
 
-	def save_screen(self,filename=None):
+	def save_screen(self,filename=None,immediate=False):
 		time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 		screen = None
 		if filename:
@@ -152,8 +159,9 @@ class AndroidDevice(webdriver.Remote):
 		else:
 			self.screen_shots += 1
 			screen = os.path.join(self.screenshotdir,"%s_%s.png" %(time_str,self.screen_shots))
-
-		self.logger.log("[action]save_screen(filename='%s')" %screen)
+		if not immediate:
+			self.sleep(2)
+		self.logger.log("[action]save_screen(filename='%s',immediate=%s)" %(screen,immediate))
 		self.get_screenshot_as_file(screen)
 
 	def input(self,by,value,text,desc="",nocheck=False):
@@ -277,10 +285,18 @@ class AndroidDevice(webdriver.Remote):
 			raise CheckError("'%s' does not equals '%s'" %(a,b))
 
 	def allow_alert(self,nocheck=True):
-		self.click('id','android:id/button1',nocheck=nocheck)
+		for id in self.system_alert_ids:
+			ele = self.find('id',id[0],nocheck=True)
+			if ele:
+				ele.click()
+				return True
 
 	def reject_alert(self,nocheck=True):
-		self.click('id','android:id/button',nocheck=nocheck)
+		for id in self.system_alert_ids:
+			ele = self.find('id',id[1],nocheck=True)
+			if ele:
+				ele.click()
+				return True
 
 	def get_conflict(self,name):
 		if name in self.conflict_datas.keys():

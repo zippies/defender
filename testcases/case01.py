@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from main.android.basecase import AndroidDevice
+from pprint import pprint
 
 class TestCase(AndroidDevice):
 	# 需要修改  desc：描述这个测试脚本测试的内容
@@ -25,19 +26,20 @@ class TestCase(AndroidDevice):
 		#允许使用摄像头
 		self.allow_alert()
 		#不注册点击登录
-		self.super_click('直接登录按钮')
+		self.super_click('注册登录按钮',nocheck=True)
 		#拿到与其他设备不相冲突的账号
 		username,password = self.get_conflict('登录帐号')
 		#输入账号
-		self.super_input('登录用户名输入框',username)
+		self.super_input('手机号输入框',username)
+		#点击下一步输入密码
+		self.super_click('下一步输入密码')
 		#输入密码
-		self.super_input('登录密码输入框',password)
+		self.super_input('密码输入框',password)
 		#点击登录按钮
 		self.super_click('登录按钮')
-		#等待2秒
-		self.sleep(2)
 		#截图
 		self.save_screen('login')
+
 		#点击拍照搜题
 		self.super_click('拍照搜题按钮')
 		#允许调用摄像头
@@ -45,9 +47,12 @@ class TestCase(AndroidDevice):
 		self.save_screen('camera')
 		#点击相册
 		self.super_click('相册')
-		#找到相册内所有图片  选择第一张点击
 		self.save_screen()
-		eles = self.super_finds('所有图片')[1].click()
+		#找到相册内所有图片  选择第1张点击
+		if self.super_exists('不兼容相册列表'):
+			self.super_finds('不兼容的所有图片')[0].click()
+		else:
+			self.super_finds('所有图片')[0].click()
 		self.save_screen()
 		#点击提交按钮
 		self.super_click('提交图片')
@@ -56,13 +61,14 @@ class TestCase(AndroidDevice):
 		self.super_click('老师答疑')
 		self.save_screen()
 		#同意调用录音
-		self.allow_alert(nocheck=True)
+		#self.allow_alert(nocheck=True)
 		#等直到出现取消发红包按钮 并点击
 		btn = self.super_waitfor('取消分享红包',timeout=120).click()
 		#评星级	五星
 		ele = self.super_finds('所有评价星星')[4].click()
 		#点评内容 输入"good good study day day up"
 		content = self.test_datas.get('评价内容')
+		print(11111111,content)
 		self.super_input('评价输入框',content)
 		#提交点评
 		self.super_click('提交评价')
