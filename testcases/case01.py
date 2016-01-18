@@ -23,14 +23,23 @@ class TestCase(AndroidDevice):
 	def run(self):
 		#设置隐式等待为10秒
 		self.implicitly_wait(10)
+
+
+
 		#允许使用摄像头
-		self.allow_alert()
+		#self.allow_alert()
+
 		#不注册点击登录
 		self.super_click('注册登录按钮',nocheck=True)
+
+		self.save_screen()
+
 		#拿到与其他设备不相冲突的账号
 		username,password = self.get_conflict('登录帐号')
 		#输入账号
 		self.super_input('手机号输入框',username)
+
+		self.save_screen()
 		#点击下一步输入密码
 		self.super_click('下一步输入密码')
 		#输入密码
@@ -42,33 +51,34 @@ class TestCase(AndroidDevice):
 
 		#点击拍照搜题
 		self.super_click('拍照搜题按钮')
-		#允许调用摄像头
-		self.allow_alert()
-		self.save_screen('camera')
-		#点击相册
-		self.super_click('相册')
 		self.save_screen()
-		#找到相册内所有图片  选择第1张点击
-		if self.super_exists('不兼容相册列表'):
-			self.super_finds('不兼容的所有图片')[0].click()
-		else:
-			self.super_finds('所有图片')[0].click()
-		self.save_screen()
-		#点击提交按钮
-		self.super_click('提交图片')
-		self.save_screen()
-		#点击老师答疑
-		self.super_click('老师答疑')
-		self.save_screen()
-		#同意调用录音
-		#self.allow_alert(nocheck=True)
-		#等直到出现取消发红包按钮 并点击
-		btn = self.super_waitfor('取消分享红包',timeout=120).click()
-		#评星级	五星
-		ele = self.super_finds('所有评价星星')[4].click()
-		#点评内容 输入"good good study day day up"
-		content = self.test_datas.get('评价内容')
-		print(11111111,content)
-		self.super_input('评价输入框',content)
-		#提交点评
-		self.super_click('提交评价')
+		# #允许调用摄像头
+		# self.allow_alert()
+		# self.save_screen('camera')
+		# #点击相册
+		# self.super_click('相册')
+		# self.save_screen()
+		# #找到相册内所有图片  选择第1张点击
+		# if self.super_exists('不兼容相册列表'):
+		# 	self.super_finds('不兼容的所有图片')[0].click()
+		# else:
+		# 	self.super_finds('所有图片')[0].click()
+		# self.save_screen()
+		# #点击提交按钮
+		# self.super_click('提交图片')
+		# self.save_screen()
+		# #点击老师答疑
+		# self.super_click('老师答疑')
+		# self.save_screen()
+		# #同意调用录音
+		# #self.allow_alert(nocheck=True)
+		# #等直到出现取消发红包按钮 并点击
+		# btn = self.super_waitfor('取消分享红包',timeout=120).click()
+		# #评星级	五星
+		# ele = self.super_finds('所有评价星星')[4].click()
+		# #点评内容 输入"good good study day day up"
+		# content = self.test_datas.get('评价内容')
+		# print(11111111,content)
+		# self.super_input('评价输入框',content)
+		# #提交点评
+		# self.super_click('提交评价')

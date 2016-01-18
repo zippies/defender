@@ -18,6 +18,11 @@ snapshotpath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\snapshots
 #电脑连接上的设备(有多台则写多台)
 devices = [
 	# {
+	# 	"deviceName":"192.168.56.101:5555", #"虚拟机"
+	# 	"platformName":"Android",
+	# 	"platformVersion":"4.4"
+	# }
+	# {
 	# 	"deviceName":"10.88.1.223:5555", #"9L5T99MNPZDEW4I7", #lenovo
 	# 	"platformName":"Android",
 	# 	"platformVersion":"4.4"
@@ -26,28 +31,28 @@ devices = [
 	# 	"deviceName":"10.88.1.93:5555", #MEIZU PRO
 	# 	"platformName":"Android",
 	# 	"platformVersion":"5.1"
-	# },
+	# }
 	# {
 	# 	"deviceName":"10.88.0.86:5555", #MEIZU 3X
 	# 	"platformName":"Android",
 	# 	"platformVersion":"4.4"
 	# }
-	{
-		"deviceName":"10.88.1.221:5555", #green MEIZU
-		"platformName":"Android",
-		"platformVersion":"4.4"
-	}
 	# {
-	# 	"deviceName":"M3LDU15424001636",  #honor 6
+	# 	"deviceName":"10.88.1.221:5555", #green MEIZU
 	# 	"platformName":"Android",
 	# 	"platformVersion":"4.4"
 	# }
+	{
+		"deviceName":"M3LDU15424001636",  #honor 6
+		"platformName":"Android",
+		"platformVersion":"4.4"
+	}
 ]
 
 #所有设备共享的与appium的连接参数
 #需要的参数可在appium官网查看用途：http://appium.io/slate/en/master/?python#appium-server-capabilities
 shared_capabilities = {
-	"app" : "C:\\Users\\Administrator\\Downloads\\backup.apk",	#也可在命令行指定apk
+	"app" : "C:\\Users\\Administrator\\Downloads\\apks\\backup.apk",	#也可在命令行指定apk
 	"appPackage" : "com.wenba.bangbang",
 	"appActivity" : "com.wenba.bangbang.activity.CoverActivity",
 	"newCommandTimeout" : 120,
@@ -55,6 +60,16 @@ shared_capabilities = {
 	"unicodeKeyboard":True,
 	"resetKeyboard":True
 }
+
+# shared_capabilities = {
+# 	"app" : "C:\\Users\\Administrator\\Downloads\\apks\\jingfree.apk",	#也可在命令行指定apk
+# 	"appPackage" : "com.xinjing.jingfree", #"com.wenba.bangbang",
+# 	"appActivity" : "com.xinjing.jingfree.MainActivity_",#"com.wenba.bangbang.activity.CoverActivity",
+# 	"newCommandTimeout" : 120,
+# 	"noSign" : True,
+# 	"unicodeKeyboard":True,
+# 	"resetKeyboard":True
+# }
 
 #系统权限弹框中允许/拒绝按钮的id
 system_alert_ids = [
@@ -69,26 +84,59 @@ system_alert_ids = [
 #	self.super_click('直接登录按钮')    #super_click(name) 该方法是框架内定义的方法，更多用法参见main/android/basecase.py
 case_elements = \
 '''
-注册登录按钮		|id			 |com.wenba.bangbang:id/btn_login
-手机号输入框		|id			 |com.wenba.bangbang:id/skin_login_username_et
-下一步输入密码		|id 		 |com.wenba.bangbang:id/skin_next_step
-密码输入框			|id			 |com.wenba.bangbang:id/skin_login_password
-登录按钮 			|id			 |com.wenba.bangbang:id/skin_password_step
-查看历史按钮		|id			 |com.wenba.bangbang:id/skin_home_history_title
-未提问图片			|id 		 |com.wenba.bangbang:id/beat_loading_img
-拍照搜题按钮		|id			 |com.wenba.bangbang:id/skin_home_btn_camera
-相册				|id			 |com.wenba.bangbang:id/campage_btn_pic
-不兼容相册列表		|id 		 |com.meizu.documentsui:id/menu_frame
-不兼容的所有图片	|id	 		 |android:id/text1
-所有图片			|id 		 |com.android.documentsui:id/icon_thumb
-提交图片			|id			 |com.wenba.bangbang:id/skin_edit_opt_submit
-老师答疑			|id			 |com.wenba.bangbang:id/skin_feed_search_buttom_live_layout
-取消分享红包		|id			 |com.wenba.bangbang:id/btn_cancel
-所有评价星星		|class_name  |android.widget.ImageView
-优先选择该老师答疑	|id 		 |com.wenba.bangbang:id/skin_teacher_preference_checkbox
-评价输入框			|id	    	 |com.wenba.bangbang:id/skin_edt_comment
-提交评价			|id		   	 |com.wenba.bangbang:id/skin_btn_rate_submit
+注册登录按钮		|xpath		 	 |LinearLayout/Button
+手机号输入框		|xpath			 |LinearLayout/RelativeLayout/EditText
+下一步输入密码		|xpath	 		 |RelativeLayout/LinearLayout[2]/ImageView
+密码输入框			|xpath			 |LinearLayout/RelativeLayout/EditText
+登录按钮 			|xpath			 |RelativeLayout/LinearLayout[2]/ImageView
+查看历史按钮		|id			 	 |com.wenba.bangbang:id/skin_home_history_title
+未提问图片			|id 		 	 |com.wenba.bangbang:id/beat_loading_img
+拍照搜题按钮		|xpath			 |RelativeLayout/FrameLayout/FrameLayout/ImageView
+相册				|id				 |com.wenba.bangbang:id/campage_btn_pic
+不兼容相册列表		|id 			 |com.meizu.documentsui:id/menu_frame
+不兼容的所有图片	|id	 			 |android:id/text1
+所有图片			|id 			 |com.android.documentsui:id/icon_thumb
+提交图片			|id				 |com.wenba.bangbang:id/skin_edit_opt_submit
+老师答疑			|id				 |com.wenba.bangbang:id/skin_feed_search_buttom_live_layout
+取消分享红包		|id				 |com.wenba.bangbang:id/btn_cancel
+所有评价星星		|class_name 	 |android.widget.ImageView
+优先选择该老师答疑	|id 			 |com.wenba.bangbang:id/skin_teacher_preference_checkbox
+评价输入框			|id	    		 |com.wenba.bangbang:id/skin_edt_comment
+提交评价			|id		   		 |com.wenba.bangbang:id/skin_btn_rate_submit
+
+跳过				|id 			 |com.xinjing.jingfree:id/tvJump
+搜索				|id 			 |com.xinjing.jingfree:id/imgLeft
+所有热门商品		|id 			 |com.xinjing.jingfree:id/tvKeyName
+价格信息			|id 			 |com.xinjing.jingfree:id/ptvPrice
 '''
+
+# case_elements = \
+# '''
+# 注册登录按钮		|id			 |com.wenba.bangbang:id/btn_login
+# 手机号输入框		|id			 |com.wenba.bangbang:id/skin_login_username_et
+# 下一步输入密码		|id 		 |com.wenba.bangbang:id/skin_next_step
+# 密码输入框			|id			 |com.wenba.bangbang:id/skin_login_password
+# 登录按钮 			|id			 |com.wenba.bangbang:id/skin_password_step
+# 查看历史按钮		|id			 |com.wenba.bangbang:id/skin_home_history_title
+# 未提问图片			|id 		 |com.wenba.bangbang:id/beat_loading_img
+# 拍照搜题按钮		|id			 |com.wenba.bangbang:id/skin_home_btn_camera
+# 相册				|id			 |com.wenba.bangbang:id/campage_btn_pic
+# 不兼容相册列表		|id 		 |com.meizu.documentsui:id/menu_frame
+# 不兼容的所有图片	|id	 		 |android:id/text1
+# 所有图片			|id 		 |com.android.documentsui:id/icon_thumb
+# 提交图片			|id			 |com.wenba.bangbang:id/skin_edit_opt_submit
+# 老师答疑			|id			 |com.wenba.bangbang:id/skin_feed_search_buttom_live_layout
+# 取消分享红包		|id			 |com.wenba.bangbang:id/btn_cancel
+# 所有评价星星		|class_name  |android.widget.ImageView
+# 优先选择该老师答疑	|id 		 |com.wenba.bangbang:id/skin_teacher_preference_checkbox
+# 评价输入框			|id	    	 |com.wenba.bangbang:id/skin_edt_comment
+# 提交评价			|id		   	 |com.wenba.bangbang:id/skin_btn_rate_submit
+
+# 跳过				|id 		 |com.xinjing.jingfree:id/tvJump
+# 搜索				|id 		 |com.xinjing.jingfree:id/imgLeft
+# 所有热门商品		|id 		 |com.xinjing.jingfree:id/tvKeyName
+# 价格信息			|id 		 |com.xinjing.jingfree:id/ptvPrice
+# '''
 
 #需要在case内用到的测试数据(实现测试数据和case分离)
 #数据格式----以'|'符号分隔的name和value：	name  |   value

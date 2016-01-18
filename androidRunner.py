@@ -19,10 +19,10 @@ from datetime import datetime
 from pprint import pprint
 
 class AndroidRunner(object):
-	def __init__(self,singlecase=None,apk_file=None):
+	def __init__(self,singlecase=None,test_devices=None,apk_file=None):
 		self.apk_file = apk_file or shared_capabilities.get('app')
 		self.singlecase = singlecase
-		self.devices = devices
+		self.devices = devices if not test_devices else [test_devices]
 		self.reachable_devices = None
 		self._connectWirelessDevices()
 		self._checkConfig()
@@ -111,7 +111,6 @@ class AndroidRunner(object):
 				device["app"] = self.apk_file
 			device['automationName'] = 'Appium' if float(device['platformVersion']) > 4.2 else 'Selendroid'
 			self.devices[index] = device
-			print(device)
 			port = str(13230 + index)
 			bootstrap_port = str(14230 + index)
 			selendroid_port = str(15230 + index)
@@ -269,7 +268,6 @@ class AndroidRunner(object):
 			case.result['result'] = True
 			self.result['success'].append(case)
 
-
 	def getReportContext(self):
 		try:
 			with open('main/report_template.html','r',encoding='utf-8') as f:
@@ -324,11 +322,15 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-c",help="usage: python androidRunner -c [casename]")
 	parser.add_argument("-o",help="open report.html when test_job is done")
+	parser.add_argument("-d",help="specify used devices")
 	parser.add_argument("-report",help="specify report path")
 	parser.add_argument("-app",help="specify used apk")
 	args = parser.parse_args()
 	try:
-		runner = AndroidRunner(args.c,args.app)
+		test_devices = None
+		if args.d:
+			test_devices = eval(args.d)
+		runner = AndroidRunner(args.c,test_devices,args.app)
 		runner.runMultiTest()
 		runner.generateReport(args.report)
 	except Exception as e:

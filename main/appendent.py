@@ -6,6 +6,23 @@ class CaseElements(object):
 		self.elementfile = None
 		self._parseElement(element_str)
 
+	def _parseXpath(self,xpath):
+		eles = []
+		if xpath.startswith("//"):
+			xpath = xpath[2:]
+		xpath_eles = xpath.split("/")
+		for ele in xpath_eles:
+			if "android.widget." in ele:
+				eles.append(ele)
+				continue
+			else:
+				ele = "android.widget.%s" %ele
+				eles.append(ele)
+
+		final_xpath = "/".join(eles)
+
+		return "//%s" %final_xpath
+
 	def _parseElement(self,element_str):
 		if os.path.exists(element_str):
 			with open(element_str,'r') as f:
@@ -16,6 +33,8 @@ class CaseElements(object):
 		for line in lines:
 			try:
 				name, by ,value = [s.strip("\t ") for s in line.split('|')]
+				if by == 'xpath':
+					value = self._parseXpath(value)
 				setattr(self,name,(by,value))
 			except Exception as e:
 				continue
@@ -63,24 +82,15 @@ if __name__ == '__main__':
 	#c = CaseElements('C:\\Users\\Administrator\\Desktop\\selftest\\defender\\elements.txt')
 	case_elements = \
 	'''
-	id			|直接登录按钮			|com.wenba.bangbang:id/register_loginTv
-	id			|登录用户名输入框			|com.wenba.bangbang:id/login_username_et
-	id			|登录密码输入框 	    |com.wenba.bangbang:id/login_passwd_et
-	id			|login_btn      	    |com.wenba.bangbang:id/login_login_tv1
-	id			|view_history 	        |com.wenba.bangbang:id/skin_home_history_title
-	id			|camera        	        |com.wenba.bangbang:id/skin_home_btn_camera
-	id			|choose_album   	    |com.wenba.bangbang:id/campage_btn_pic
-	id			|all_pics      	        |com.android.documentsui:id/icon_thumb
-	id			|submit_pic    	        |com.wenba.bangbang:id/skin_edit_opt_submit
-	id			|teacher_answer         |com.wenba.bangbang:id/skin_feed_search_buttom_live_layout
-	id			|cancel_red_package     |com.wenba.bangbang:id/btn_cancel
-	class_name  |evaluate_teacher  		|android.widget.ImageView
-	id			|evaluate_content       |com.wenba.bangbang:id/skin_edt_comment
-	id			|evaluate_submit        |com.wenba.bangbang:id/skin_btn_rate_submit
+	注册登录按钮		|xpath		 	 |LinearLayout/Button
+	手机号输入框		|xpath			 |LinearLayout/RelativeLayout/EditText
+	下一步输入密码		|xpath	 		 |RelativeLayout/LinearLayout[2]/ImageView
+	密码输入框			|xpath			 |LinearLayout/RelativeLayout/EditText
+	登录按钮 			|xpath			 |RelativeLayout/LinearLayout[2]/ImageView
 	'''
 	c = CaseElements(case_elements)
 	pprint(dir(c))
-	print(c.get("直接登录按钮"))
+	print(c.get("下一步输入密码"))
 
 # if __name__ == '__main__':
 # 	datas = \

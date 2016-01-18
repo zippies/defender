@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import logging
+import logging,os
+from threading import Thread
 
 class Logger(object):
 	def __init__(self,name,mode):
@@ -31,4 +32,3 @@ class Logger(object):
 			else:
 				self.infologger.info(msg)
 				print(msg)
-

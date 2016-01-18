@@ -96,6 +96,16 @@ class AndroidDevice(webdriver.Remote):
 		else:
 			ele.click()
 
+	def click_point(self,x,y,duration=None):
+		self.logger.log("[action]click_point(x=%s,y=%s,duration=%s)" %(x,y,duration))
+		action = TouchAction(self)
+		if duration:
+			action.long_press(x=x, y=y, duration=duration).release()
+		else:
+			action.tap(x=x, y=y)
+		action.perform()
+		return self
+
 	def super_click(self,case_element_name,nocheck=False):
 		by,value = self.case_elements.get(case_element_name)
 		if by and value:
@@ -109,7 +119,6 @@ class AndroidDevice(webdriver.Remote):
 			return True
 		else:
 			return False
-
 
 	def super_find(self,case_element_name,nocheck=False):
 		by,value = self.case_elements.get(case_element_name)
@@ -150,6 +159,7 @@ class AndroidDevice(webdriver.Remote):
 		else:
 			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
 			raise CaseError(error)
+
 
 	def save_screen(self,filename=None,immediate=False):
 		time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
