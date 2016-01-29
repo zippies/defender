@@ -21,17 +21,6 @@ PATH = lambda p: os.path.abspath(
 	os.path.join(os.path.dirname(__file__), p)
 )
 
-# def needlog(func):
-# 	def _deco(self,*args,**kwargs):
-# 		logstr = "[action]%s%s" %(func.__name__,"(")
-# 		for v in args:
-# 			logstr += "'%s'," %str(v)
-# 		for k,v in kwargs.items():
-# 			logstr += "%s='%s'," %(str(k),str(v))
-# 		self.logger.log(logstr+")")
-# 		func(self,*args,**kwargs)
-# 	return _deco
-
 class AndroidDevice(webdriver.Remote):
 	def __init__(self,conflict_datas,command_executor='http://localhost:4723/wd/hub',desired_capabilities=None,browser_profile=None,proxy=None,keep_alive=False):
 		super(AndroidDevice,self).__init__(command_executor, desired_capabilities,browser_profile,proxy,keep_alive) #连接Appium服务
@@ -95,71 +84,6 @@ class AndroidDevice(webdriver.Remote):
 			return None
 		else:
 			ele.click()
-
-	def click_point(self,x,y,duration=None):
-		self.logger.log("[action]click_point(x=%s,y=%s,duration=%s)" %(x,y,duration))
-		action = TouchAction(self)
-		if duration:
-			action.long_press(x=x, y=y, duration=duration).release()
-		else:
-			action.tap(x=x, y=y)
-		action.perform()
-		return self
-
-	def super_click(self,case_element_name,nocheck=False):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			self.click(by,value,desc=case_element_name,nocheck=nocheck)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
-	def super_exists(self,case_element_name):
-		if self.super_find(case_element_name,nocheck=True):
-			return True
-		else:
-			return False
-
-	def super_find(self,case_element_name,nocheck=False):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			return self.find(by,value,nocheck)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
-	def super_finds(self,case_element_name,nocheck=False):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			return self.finds(by,value,nocheck=nocheck)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
-	def super_input(self,case_element_name,text,nocheck=False):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			self.input(by,value,text,desc=case_element_name,nocheck=nocheck)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
-	def super_gettext(self,case_element_name,nocheck=False):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			return self.gettext(by,value,desc=case_element_name,nocheck=nocheck)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
-	def super_waitfor(self,case_element_name,timeout=10):
-		by,value = self.case_elements.get(case_element_name)
-		if by and value:
-			return self.waitfor(by,value,desc=case_element_name,timeout=timeout)
-		else:
-			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
-			raise CaseError(error)
-
 
 	def save_screen(self,filename=None,immediate=False):
 		time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -270,6 +194,8 @@ class AndroidDevice(webdriver.Remote):
 		:Usage:
 			driver.flick(100, 100, 100, 400)
 		"""
+		if self.autoAcceptAlert:
+			self.allow_alert()
 		self.logger.log("[action]flick(begin=%s,end=%s)" %(begin,end))
 		start_x,start_y = begin
 		end_x,end_y = end
@@ -295,18 +221,20 @@ class AndroidDevice(webdriver.Remote):
 			raise CheckError("'%s' does not equals '%s'" %(a,b))
 
 	def allow_alert(self,nocheck=True):
+		pageSource = self.page_source
 		for id in self.system_alert_ids:
-			ele = self.find('id',id[0],nocheck=True)
-			if ele:
-				ele.click()
-				return True
+			if id[0] in pageSource:
+				ele = self.find('id',id[0],nocheck=True)
+				if ele:
+					ele.click()
 
 	def reject_alert(self,nocheck=True):
+		pageSource = self.page_source
 		for id in self.system_alert_ids:
-			ele = self.find('id',id[1],nocheck=True)
-			if ele:
-				ele.click()
-				return True
+			if id[1] in pageSource:
+				ele = self.find('id',id[1],nocheck=True)
+				if ele:
+					ele.click()
 
 	def get_conflict(self,name):
 		if name in self.conflict_datas.keys():
@@ -317,6 +245,87 @@ class AndroidDevice(webdriver.Remote):
 				raise CaseError("%s:got no more value to be popped(%s)" %(name,str(e)))
 		else:
 			raise CaseError("undefined:%s check your 'androidConfig.py' to see if it is configured correctly" %name)
+
+	def click_point(self,x,y,duration=None):
+		self.logger.log("[action]click_point(x=%s,y=%s,duration=%s)" %(x,y,duration))
+		action = TouchAction(self)
+		if duration:
+			action.long_press(x=x, y=y, duration=duration).release()
+		else:
+			action.tap(x=x, y=y)
+		action.perform()
+		return self
+
+	def goback(self):
+		self.press_keycode(4)
+		return self
+
+	def gohome(self):
+		self.press_keycode(3)
+		return self
+
+	def super_click(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			self.click(by,value,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_clicks(self,case_element_names,nocheck=False):
+		for name in case_element_names:
+			self.super_click(name,nocheck=nocheck)
+
+	def super_exists(self,case_element_name):
+		if self.super_find(case_element_name,nocheck=True):
+			return True
+		else:
+			return False
+
+	def super_find(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.find(by,value,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_finds(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.finds(by,value,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_input(self,case_element_name,text,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			self.input(by,value,text,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_inputs(self,case_element_names,text,nocheck=False):
+		for name in case_element_names:
+			self.super_input(name,text,nocheck=nocheck)
+
+	def super_gettext(self,case_element_name,nocheck=False):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.gettext(by,value,desc=case_element_name,nocheck=nocheck)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
+	def super_waitfor(self,case_element_name,timeout=10):
+		by,value = self.case_elements.get(case_element_name)
+		if by and value:
+			return self.waitfor(by,value,desc=case_element_name,timeout=timeout)
+		else:
+			error = "'element:%s' is not configured in '%s'" %(case_element_name,self.case_elements.elementfile or 'androidConfig.py')
+			raise CaseError(error)
+
 
 #=============================================自定义方法  END ==============================================================
 	@property

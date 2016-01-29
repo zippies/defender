@@ -257,6 +257,7 @@ class AndroidRunner(object):
 			case.result['errorMsg'] = errorMsg
 			self.result['failed'].append(case)
 		finally:
+			case.save_screen("end",immediate=True)
 			end = time.time()
 			case.result['runtime'] = round(end-start,2)
 			print("end test:",case.casename)
