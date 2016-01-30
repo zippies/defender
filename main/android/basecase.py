@@ -264,6 +264,35 @@ class AndroidDevice(webdriver.Remote):
 		self.press_keycode(3)
 		return self
 
+	def parseGestures(self,location,size):
+		start_x,start_y = location['x'],location['y']
+		space_x,space_y = size["width"]/3,size["height"]/3
+		points = {}
+		floor = 0
+		num = 0
+		for i in range(1,10):
+			if i in [4,7]:
+				floor += 1
+				num = 0
+			points[i] = (round(start_x+space_x*(0.5 + num)),round(start_y+space_y*(0.5+floor)))
+			num += 1
+
+		return points
+
+	def deal_gestures_password(self,case_element_name,gestures,nocheck=False):
+		elem = self.super_find(case_element_name,nocheck=nocheck)
+		points = self.parseGestures(elem.location,elem.size)
+		action = TouchAction(self)
+		for index,ges in enumerate(gestures):
+			x,y = points[ges]
+			if index == 0:
+				action = action.long_press(x=x,y=y)
+			else:
+				action = action.move_to(x=x,y=y)
+
+		action.release().perform()
+		return self
+
 	def super_click(self,case_element_name,nocheck=False):
 		by,value = self.case_elements.get(case_element_name)
 		if by and value:
