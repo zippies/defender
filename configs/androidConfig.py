@@ -4,16 +4,16 @@ case_logmode = "file"
 
 #appium的日志级别：
 #info, info:debug, info:info, info:warn, info:error, warn, warn:debug, warn:info, warn:warn, warn:error, error, error:debug, error:info, error:warn, error:error, debug, debug:debug, debug:info, debug:warn, debug:error
-appium_log_level = "error"
+appium_log_level = "info"
 
 #测试用例存放目录
-casepath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\testcases"
+casepath = "C:\\Users\\Lin\\Desktop\\selftest\\defender\\testcases"
 
 #日志/测试报告 存放目录
-logpath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\logs"
+logpath = "C:\\Users\\Lin\\Desktop\\selftest\\defender\\logs"
 
 #截图文件存放目录
-snapshotpath = "C:\\Users\\Administrator\\Desktop\\selftest\\defender\\snapshots"
+snapshotpath = "C:\\Users\\Lin\\Desktop\\selftest\\defender\\snapshots"
 
 #电脑连接上的设备(有多台则写多台)
 devices = [
@@ -21,27 +21,22 @@ devices = [
 	# 	"deviceName":"192.168.56.101:5555", #"虚拟机"
 	# 	"platformName":"Android",
 	# 	"platformVersion":"4.4"
-	# }
-	# {
-	# 	"deviceName":"10.88.1.223:5555", #"9L5T99MNPZDEW4I7", #lenovo
-	# 	"platformName":"Android",
-	# 	"platformVersion":"4.4"
 	# },
 	# {
-	# 	"deviceName":"81CEBMJ22YEC", #MEIZU PRO 81CEBMJ22YEC
+	# 	"deviceName":"192.168.199.149:5555", #MEIZU x2
 	# 	"platformName":"Android",
 	# 	"platformVersion":"5.1"
 	# },
+	{
+		"deviceName":"NHG6T15C26001819", #huawei
+		"platformName":"Android",
+		"platformVersion":"5.1"
+	},
 	# {
-	# 	"deviceName":"10.88.0.86:5555", #MEIZU 3X
+	# 	"deviceName":"d1b24e2f", #vivo  
 	# 	"platformName":"Android",
-	# 	"platformVersion":"4.4"
-	# }
-	# {
-	# 	"deviceName":"10.88.1.221:5555", #green MEIZU  71CDBLL233YA
-	# 	"platformName":"Android",
-	# 	"platformVersion":"4.4"
-	# }
+	# 	"platformVersion":"5.0"
+	# },
 	{
 		"deviceName":"M3LDU15424001636",  #honor 6
 		"platformName":"Android",
@@ -52,27 +47,18 @@ devices = [
 #所有设备共享的与appium的连接参数
 #需要的参数可在appium官网查看用途：http://appium.io/slate/en/master/?python#appium-server-capabilities
 shared_capabilities = {
-	"app" : "C:\\Users\\Administrator\\Downloads\\apks\\backup.apk",	#也可在命令行指定apk
-	"appPackage" : "com.wenba.bangbang",
-	"appActivity" : "com.wenba.bangbang.activity.CoverActivity",
+	#"app" : "C:\\Users\\Lin\\Desktop\\undertest\\app-release.apk",	#也可在命令行指定apk
+	"appPackage" : "me.sui.arizona",
+	"appActivity" : "me.sui.arizona.ui.activity.FirstPageActivity",
 	"newCommandTimeout" : 120,
 	"noSign" : True,
 	"unicodeKeyboard":True,
 	"resetKeyboard":True
 }
 
-# shared_capabilities = {
-# 	#"app" : "C:\\Users\\Administrator\\Downloads\\apks\\jingfree.apk",	#也可在命令行指定apk
-# 	"appPackage" : "com.xinjing.jingfree", #"com.wenba.bangbang",
-# 	"appActivity" : "com.xinjing.jingfree.MainActivity_",#"com.wenba.bangbang.activity.CoverActivity",
-# 	"newCommandTimeout" : 120,
-# 	"noSign" : True,
-# 	"unicodeKeyboard":True,
-# 	"resetKeyboard":True
-# }
-
 #系统权限弹框中允许/拒绝按钮的id
 system_alert_ids = [
+	('me.sui.arizona:id/btn_right','me.sui.arizona:id/btn_left'),
 	('com.huawei.systemmanager:id/btn_allow','com.huawei.systemmanager:id/btn_forbbid'),
 	('android:id/button1','android:id/button'),
 	('flyme:id/accept','flyme:id/reject')
@@ -84,40 +70,8 @@ system_alert_ids = [
 #	self.super_click('直接登录按钮')    #super_click(name) 该方法是框架内定义的方法，更多用法参见main/android/basecase.py
 case_elements = \
 '''
-注册登录按钮		|xpath		 	 |LinearLayout/Button
-手机号输入框		|xpath			 |LinearLayout/RelativeLayout/EditText
-下一步输入密码		|xpath	 		 |RelativeLayout/LinearLayout[2]/ImageView
-密码输入框			|xpath			 |LinearLayout/RelativeLayout/EditText
-登录按钮 			|xpath			 |RelativeLayout/LinearLayout[2]/ImageView
-查看历史按钮		|id			 	 |com.wenba.bangbang:id/skin_home_history_title
-未提问图片			|id 		 	 |com.wenba.bangbang:id/beat_loading_img
-拍照搜题按钮		|xpath			 |RelativeLayout/FrameLayout/FrameLayout/ImageView
-相册				|id				 |com.wenba.bangbang:id/campage_btn_pic
-不兼容相册列表		|id 			 |com.meizu.documentsui:id/menu_frame
-不兼容的所有图片	|id	 			 |android:id/text1
-所有图片			|id 			 |com.android.documentsui:id/icon_thumb
-提交图片			|id				 |com.wenba.bangbang:id/skin_edit_opt_submit
-老师答疑			|id				 |com.wenba.bangbang:id/skin_feed_search_buttom_live_layout
-取消分享红包		|id				 |com.wenba.bangbang:id/btn_cancel
-所有评价星星		|class_name 	 |android.widget.ImageView
-优先选择该老师答疑	|id 			 |com.wenba.bangbang:id/skin_teacher_preference_checkbox
-评价输入框			|id	    		 |com.wenba.bangbang:id/skin_edt_comment
-提交评价			|id		   		 |com.wenba.bangbang:id/skin_btn_rate_submit
-
-跳过				|id 			 |com.xinjing.jingfree:id/tvJump
-搜索				|id 			 |com.xinjing.jingfree:id/imgLeft
-所有热门商品		|id 			 |com.xinjing.jingfree:id/tvKeyName
-价格信息			|id 			 |com.xinjing.jingfree:id/ptvPrice
+注册按钮		|id		 	 |me.sui.arizona:id/btn_login
 '''
-
-# case_elements = \
-# '''
-# 跳过				|id 		 |com.xinjing.jingfree:id/tvJump
-# 镜福利				|id 		 |android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.support.v4.view.ViewPager/android.widget.RelativeLayout/android.view.View/android.widget.ListView/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.ImageView
-# 搜索				|id 		 |com.xinjing.jingfree:id/imgLeft
-# 所有热门商品		|id 		 |com.xinjing.jingfree:id/tvKeyName
-# 价格信息			|id 		 |com.xinjing.jingfree:id/ptvPrice
-# '''
 
 #需要在case内用到的测试数据(实现测试数据和case分离)
 #数据格式----以'|'符号分隔的name和value：	name  |   value
